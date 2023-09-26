@@ -15,7 +15,9 @@ public class WebSecurityConfig {
             "/hello",
             "/register",
             "/verifyRegistration",
-            "/resendVerifyToken*"
+            "/resendVerifyToken*",
+            "/resetPassword*",
+            "/savePassword*"
     };
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -29,7 +31,8 @@ public class WebSecurityConfig {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers(WHITE_LIST_URLS).permitAll();
+                .requestMatchers("/**").permitAll()
+                .requestMatchers("/api/**").authenticated();
 
         return http.build();
     }

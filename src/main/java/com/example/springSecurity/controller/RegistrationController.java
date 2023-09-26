@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -52,8 +53,10 @@ public class RegistrationController {
     }
     @PostMapping("/resetPassword")
     public String resetPassword(@RequestBody PasswordModel passwordModel,HttpServletRequest request){
+
         String url="";
         User user=userService.findUserByEmail(passwordModel.getEmail());
+
         if(user!=null){
             String token= UUID.randomUUID().toString();
             userService.createPasswordResetTokenForUser(user,token);
@@ -62,9 +65,22 @@ public class RegistrationController {
         }
         return url;
     }
-
+    @PostMapping("/savePassword")
     public String savePassword(@RequestParam("token") String token,@RequestBody PasswordModel passwordModel){
         String result=userService.validatePasswordResetToken(token);
+        if(!result.equalsIgnoreCase("valid")){
+            return "Invalid";
+        }
+        Optional<User> user=userService.getUserByPasswordResetToken(token);
+        if(user.isPresent()){
+            userService.changePassword(user.get(),passwordModel.getNewPassword());
+            return "Password Reset SuccessFully";
+
+        }
+        else{
+            return "Invalid Token";
+        }
+
     }
 
     private String passwordResetTokenMail(User user, String applicationUrl, String token) {
